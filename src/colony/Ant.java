@@ -72,10 +72,16 @@ public class Ant {
 	
 	public boolean collidingWith(Ant other){
 		double bound = other.size + this.size;
-		double dist = Math.sqrt(Math.pow(other.pos.x - this.pos.x, 2) + Math.pow(other.pos.y - this.pos.y, 2));
+		double nx = other.pos.x - this.pos.x;
+		double ny = other.pos.y - this.pos.y;
+		double dist = Math.sqrt(Math.pow(nx, 2) + Math.pow(ny, 2));
 		if (dist <= bound) {
 			// do something with collision...
-			
+			nx /= dist; ny /= dist;
+			double delta = vel.x*nx + vel.y*ny;
+			vel.x -= 2*delta*nx;
+			vel.y -= 2*delta*ny;
+			// TODO: collision is wonky
 			return true;
 		}
 		return false;

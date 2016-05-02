@@ -1,5 +1,6 @@
 package colony;
 
+//import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 
@@ -10,9 +11,6 @@ public class Cell {
 	
 	int row, col;
 	ArrayList<Ant> ants;
-	
-	public static int[] DC = {0, 0, -1, 1, -1, 1, -1, 1};
-	public static int[] DR = {-1, 1, 0, 0, -1, -1, 1, 1}; 
 	
 	public Cell(int row, int col){
 		this.row = row;
@@ -35,6 +33,11 @@ public class Cell {
 	}
 	
 	public void draw(Graphics2D g) {
+//		ants per cell indicator
+//		g.setColor(new Color(Color.HSBtoRGB(ants.size()*0.1f, 0.7f, 0.7f)));
+//		g.fillRect(row*DisplayGUI.CELLWIDTH, col*DisplayGUI.CELLWIDTH,
+//				DisplayGUI.CELLWIDTH, DisplayGUI.CELLWIDTH);
+		
 		for(int i = 0; i < ants.size(); i ++){
 			ants.get(i).draw(g);
 		}
@@ -50,6 +53,10 @@ public class Cell {
 				for (int j = 0; j < others.size(); j++) {
 					ants.get(a).collidingWith(others.get(j));
 				}
+			}
+			for(int b = 0; b < ants.size(); b++){
+				if(b == a) continue;
+				ants.get(a).collidingWith(ants.get(b));
 			}
 		}
 	}
