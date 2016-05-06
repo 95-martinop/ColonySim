@@ -55,7 +55,6 @@ public class Display extends JPanel implements Runnable {
 			next = System.currentTimeMillis();
 			dt = (int)(next-now);
 			now = next;
-			System.out.println(dt);
 			step(dt);
 			repaint(); // indirectly calls paintComponent
 			try {

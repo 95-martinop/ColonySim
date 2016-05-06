@@ -10,7 +10,7 @@ import java.awt.*;
 @SuppressWarnings("javadoc")
 public class DisplayGUI extends JFrame{
 	
-	public static int WIDTH = 600, HEIGHT = 600;
+	public static int WIDTH = 1000, HEIGHT = 800;
 	public static int CELLWIDTH = 40;
 	
 	private static final long serialVersionUID = 1L;

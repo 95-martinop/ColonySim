@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class Grid {
 	
 	public static int N = 0, S = 1, W = 2, E = 3, NW = 4, NE = 5, SW = 6, SE = 7;
+	public static int COLONIES = 5;
 	Cell[][] cell;
 	
 	int rows, cols;
@@ -17,7 +18,7 @@ public class Grid {
 		initCells();
 		
 		ArrayList<Ant> ants = new ArrayList<Ant>();
-		for (int i = 0; i < 25; i++) {
+		for (int i = 0; i < 200; i++) {
 			ants.add(new Ant());
 		}
 		transitionAnts(ants);
@@ -76,6 +77,11 @@ public class Grid {
 		for(int i = 0; i < rows; i ++){
 			for(int j = 0; j < cols; j ++){
 				cell[i][j].draw(g);
+			}
+		}
+		for(int i = 0; i < rows; i ++){
+			for(int j = 0; j < cols; j ++){
+				cell[i][j].drawComponents(g);
 			}
 		}
 	}
