@@ -7,7 +7,9 @@ public class Grid {
 	
 	public static int N = 0, S = 1, W = 2, E = 3, NW = 4, NE = 5, SW = 6, SE = 7;
 	public static int COLONIES = 5;
+	Colony[] colonies;
 	Cell[][] cell;
+	public int colonyRate = 100;
 	
 	int rows, cols;
 	
@@ -17,11 +19,17 @@ public class Grid {
 		
 		initCells();
 		
-		ArrayList<Ant> ants = new ArrayList<Ant>();
-		for (int i = 0; i < 200; i++) {
-			ants.add(new Ant());
+		colonies = new Colony[COLONIES];
+		
+		for(int i = 0; i<COLONIES; i++){
+			colonies[i]= new Colony(3*(i%2)+3,3*(i/2)+3, this);
 		}
-		transitionAnts(ants);
+		
+		//ArrayList<Ant> ants = new ArrayList<Ant>();
+		//for (int i = 0; i < 200; i++) {
+		//	ants.add(new Ant());
+		//}
+		//transitionAnts(ants);
 	}
 	
 	private void initCells() {
@@ -29,9 +37,14 @@ public class Grid {
 		for(int i = 0; i < rows; i ++){
 			for(int j = 0; j < cols; j ++){
 				cell[i][j] = new Cell(i,j);
+				
 			}
 		}
-		
+		for(int c = 0; c< COLONIES; c++){
+			int row = this.colonies[c].row;
+			int column = this.colonies[c].col;
+			this.cell[row][column].addColony(this.colonies[c]);
+		}
 		// link neighbors
 		for(int i = 0; i < rows; i ++){
 			for(int j = 0; j < cols; j ++){
@@ -78,6 +91,9 @@ public class Grid {
 			for(int j = 0; j < cols; j ++){
 				cell[i][j].draw(g);
 			}
+		}
+		for(int i = 0; i <this.COLONIES; i++){
+			this.colonies[i].draw(g);
 		}
 		for(int i = 0; i < rows; i ++){
 			for(int j = 0; j < cols; j ++){

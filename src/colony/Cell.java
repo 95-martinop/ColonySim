@@ -14,9 +14,12 @@ public class Cell {
 	
 	float growth;
 	float terrain;
+	float foodRate;
+	int food;
 	float[] pheromones;
 	
-	int colony = -1;
+	boolean hasColony = false;
+	Colony colony = null;
 	
 	public Cell(int row, int col){
 		this.row = row;
@@ -27,10 +30,16 @@ public class Cell {
 		growth = (float) Math.random();
 		terrain = (float) (Math.random() * 0.75);
 		pheromones = new float[Grid.COLONIES];
+		food = 0;
+		foodRate = (float) (Math.random()*.01);
 	}
 	
 	public ArrayList<Ant> step(double dt) {
 		//System.out.println("CELL STEP");
+		if(Math.random()<this.foodRate){
+			this.food++;
+		}
+		
 		ArrayList<Ant> transitions = new ArrayList<Ant>();
 		for (int a = 0; a < ants.size(); a++) {
 			boolean transition = ants.get(a).step(dt, terrain); 
@@ -58,6 +67,10 @@ public class Cell {
 	
 	public void checkCollisions() {
 		for (int a = 0; a < ants.size(); a++) {
+			if(ants.get(a).decideFood()&&this.food>0){
+				this.food--;
+				ants.get(a).pickUpFood();
+			}
 			for (int i = 0; i < neighbors.length; i++) {
 				if (neighbors[i] == null) {
 					continue;
@@ -72,6 +85,10 @@ public class Cell {
 				ants.get(a).collidingWith(ants.get(b));
 			}
 		}
+	}
+	public void addColony(Colony colony){
+		this.colony = colony;
+		this.hasColony = true;
 	}
 	
 }

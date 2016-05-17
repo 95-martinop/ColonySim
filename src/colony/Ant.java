@@ -19,8 +19,18 @@ public class Ant {
 	private double wanderCircleRadius;
 	private double wanderAngleChange;
 	private double maxWanderForce = 15;
+	private boolean hasFood = false;
+	private Point2D.Double homePoint;
+	private Colony home;
+	
+	private enum State {
+		Wander, Home
+	}
+	
+	private State state = State.Wander;
 
-	public Ant() {
+	public Ant(Colony Colony) {
+		this.home = Colony;
 		size = DisplayGUI.CELLWIDTH / 8.0;
 		size = Math.random() * size + size;
 		energy = Math.random();
@@ -33,7 +43,8 @@ public class Ant {
 		double theta = Math.random() * 2 * Math.PI;
 		vel = new Point2D.Double(4 * size * Math.sin(theta), 4 * size * Math.cos(theta));
 
-		color = new Color(Color.HSBtoRGB((float) Math.random(), 0.7f, 0.7f));
+		color = this.home.color;//new Color(Color.HSBtoRGB((float) Math.random(), 0.7f, 0.7f));
+		this.homePoint = new Point2D.Double((this.home.col+.5) * DisplayGUI.CELLWIDTH, (this.home.row+.5) * DisplayGUI.CELLWIDTH);
 
 		col = (int) (pos.x / DisplayGUI.CELLWIDTH);
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
@@ -41,6 +52,14 @@ public class Ant {
 
 	public boolean step(double dt, float terrain) {
 		// System.out.println("ANT STEP " + dt);
+		//if(this.pos.x > this.homePoint.x - (.5 * DisplayGUI.CELLWIDTH) &
+		//		this.pos.x < this.homePoint.x + (.5 * DisplayGUI.CELLWIDTH) &
+		//		this.pos.y > this.homePoint.y - (.5 * DisplayGUI.CELLWIDTH) &
+		//		this.pos.y < this.homePoint.y + (.5 * DisplayGUI.CELLWIDTH) &
+		//		this.hasFood == false
+		//		){
+		//	this.state = this.state.Wander;
+		//}
 		double sec = dt / 1000.0;
 		
 		double mvx = vel.x;
@@ -48,16 +67,33 @@ public class Ant {
 		double vx = mvx;
 		double vy = mvy;
 		
-		steer = wander(dt);
-		double mag = steer.distance(new Point2D.Double(0, 0));
-		if (mag > maxWanderForce) {
-			steer.x *= maxWanderForce/mag;
-			steer.y *= maxWanderForce/mag;
+		switch (state) {
+			case Wander:
+				steer = wander(dt);
+				double mag = steer.distance(new Point2D.Double(0, 0));
+				if (mag > maxWanderForce) {
+					steer.x *= maxWanderForce/mag;
+					steer.y *= maxWanderForce/mag;
+				}
+				break;
+			case Home:
+				//steer = this.homePoint;
+				steer.x = this.homePoint.x - this.pos.x;
+				steer.y = this.homePoint.y - this.pos.y;
+				mag = steer.distance(new Point2D.Double(0, 0));
+				if (mag > maxWanderForce) {
+					steer.x *= maxWanderForce/mag;
+					steer.y *= maxWanderForce/mag;
+				}
+				break;
 		}
+		
+		// steer
 		vel.x += steer.x;
 		vel.y += steer.y;
 
-		mag = Point2D.Double.distance(vel.x, vel.y, 0, 0);
+		// clamp velocity to maximum
+		double mag = Point2D.Double.distance(vel.x, vel.y, 0, 0);
 		double maxVel = Point2D.Double.distance(0, 0, mvx, mvy);
 		if (mag > maxVel) {
 			vel.x *= maxVel/mag;
@@ -125,8 +161,6 @@ public class Ant {
 			
 			collide(nx, ny, correctDist);
 			other.collide(-nx, -ny, correctDist);
-			
-			// TODO: collision is wonky
 			return true;
 		}
 		return false;
@@ -160,5 +194,18 @@ public class Ant {
 		result.x = Math.cos(value) * len;
 		result.y = Math.sin(value) * len;
 		return result;
+	}
+	
+	public boolean decideFood(){
+		return true;
+		
+	}
+	public void pickUpFood(){
+		this.state = this.state.Home;
+		this.hasFood = true;
+	}
+	public void dropOffFood(){
+		this.state = this.state.Wander;
+		this.hasFood = false;
 	}
 }
