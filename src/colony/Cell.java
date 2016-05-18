@@ -3,6 +3,7 @@ package colony;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Cell {
 	
@@ -16,7 +17,7 @@ public class Cell {
 	float terrain;
 	float foodRate;
 	int food;
-	float[] pheromones;
+	HashMap<Colony,Double> pheromones;
 	
 	boolean hasColony = false;
 	Colony colony = null;
@@ -29,7 +30,7 @@ public class Cell {
 		
 		growth = (float) Math.random();
 		terrain = (float) (Math.random() * 0.75);
-		pheromones = new float[Grid.COLONIES];
+		pheromones = new HashMap<Colony,Double>();
 		food = 0;
 		foodRate = (float) (Math.random()*.01);
 	}
@@ -42,7 +43,7 @@ public class Cell {
 		
 		ArrayList<Ant> transitions = new ArrayList<Ant>();
 		for (int a = 0; a < ants.size(); a++) {
-			boolean transition = ants.get(a).step(dt, terrain); 
+			boolean transition = ants.get(a).step(dt, terrain,this); 
 			if (transition) {
 				transitions.add(ants.remove(a));
 				a--;

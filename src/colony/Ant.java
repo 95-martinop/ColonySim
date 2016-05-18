@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 public class Ant {
 
@@ -22,9 +23,13 @@ public class Ant {
 	private boolean hasFood = false;
 	private Point2D.Double homePoint;
 	private Colony home;
+	private Double pherThresh=  1.0;
+	private Double wanderChance=.3;
+	private double offPathChance=.3;
+	private Point2D.Double followPoint;
 	
 	private enum State {
-		Wander, Home
+		Follow, Wander, Home, OffPath, JoinPath
 	}
 	
 	private State state = State.Wander;
@@ -39,18 +44,19 @@ public class Ant {
 		wanderCircleRadius = size * 2;
 		wanderAngleChange = Math.PI/2;
 
-		pos = new Point2D.Double(Math.random() * DisplayGUI.WIDTH, Math.random() * DisplayGUI.HEIGHT);
+		//pos = new Point2D.Double(Math.random() * DisplayGUI.WIDTH, Math.random() * DisplayGUI.HEIGHT);
 		double theta = Math.random() * 2 * Math.PI;
 		vel = new Point2D.Double(4 * size * Math.sin(theta), 4 * size * Math.cos(theta));
 
 		color = this.home.color;//new Color(Color.HSBtoRGB((float) Math.random(), 0.7f, 0.7f));
 		this.homePoint = new Point2D.Double((this.home.col+.5) * DisplayGUI.CELLWIDTH, (this.home.row+.5) * DisplayGUI.CELLWIDTH);
-
+		pos = homePoint;
+		
 		col = (int) (pos.x / DisplayGUI.CELLWIDTH);
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
 	}
 
-	public boolean step(double dt, float terrain) {
+	public boolean step(double dt, float terrain, Cell currentCell) {
 		// System.out.println("ANT STEP " + dt);
 		//if(this.pos.x > this.homePoint.x - (.5 * DisplayGUI.CELLWIDTH) &
 		//		this.pos.x < this.homePoint.x + (.5 * DisplayGUI.CELLWIDTH) &
@@ -68,6 +74,66 @@ public class Ant {
 		double vy = mvy;
 		
 		switch (state) {
+			case Follow:
+				if (currentCell.pheromones.get(this.home)>pherThresh){
+					double mag = steer.distance(new Point2D.Double(0, 0));
+					steer.x = this.pos.x + this.homePoint.x;
+					steer.y = this.pos.y + this.homePoint.y;
+					mag = steer.distance(new Point2D.Double(0, 0));
+					if (mag > maxWanderForce) {
+						steer.x *= maxWanderForce/mag;
+						steer.y *= maxWanderForce/mag;
+					}
+					break;
+				}
+			case OffPath:
+				if(Math.random() < wanderChance){
+					this.state = State.Wander;
+				}
+				else {
+					Double totalPher = 0.0;
+					ArrayList<Cell> cells = new ArrayList<Cell>();
+					for (Cell c :currentCell.neighbors){
+						int dr = c.row-home.row;
+						int dc = c.col-home.col;
+						if((dr*dr+dc*dc)*(DisplayGUI.CELLWIDTH*DisplayGUI.CELLWIDTH) > pos.distanceSq(homePoint)){
+							totalPher+=c.pheromones.get(home);
+							cells.add(c);
+						}
+					}
+
+					int i = 0;
+					totalPher = Math.random()*totalPher;
+					while (totalPher>0){
+						for (i=0;i<cells.size();i++){
+							totalPher-= cells.get(i).pheromones.get(home);
+							if (totalPher <= 0) break;
+						}
+					}
+					//point towards cell
+					this.followPoint = new Point2D.Double((cells.get(i).row+.5)*DisplayGUI.CELLWIDTH,(cells.get(i).col+.5)*DisplayGUI.CELLWIDTH);
+				}
+				break;
+			case JoinPath:
+				if(Math.random()<offPathChance){
+					this.state = State.OffPath;
+				}
+				else {
+					if(currentCell.pheromones.get(this.home)>pherThresh){
+						this.state = State.Follow;
+					}
+					else{
+						double mag = steer.distance(new Point2D.Double(0, 0));
+						steer.x = this.followPoint.x = this.pos.x;
+						steer.y = this.followPoint.y - this.pos.y;
+						mag = steer.distance(new Point2D.Double(0, 0));
+						if (mag > maxWanderForce) {
+							steer.x *= maxWanderForce/mag;
+							steer.y *= maxWanderForce/mag;
+						}
+					}
+				}
+				break;
 			case Wander:
 				steer = wander(dt);
 				double mag = steer.distance(new Point2D.Double(0, 0));
