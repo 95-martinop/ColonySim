@@ -10,17 +10,13 @@ public class Colony {
 	double food;
 	ArrayList<Ant> ants = new ArrayList<Ant>();
 	Grid grid;
+	double spawnTimer;
 	public Colony(int r, int c, Grid grid){
 		this.row = r;
 		this.col = c;
 		this.food = 500;
 		this.color = new Color(Color.HSBtoRGB((float) Math.random(), 0.7f, 0.7f));
 		this.grid = grid;
-		//ArrayList<Ant> ants = new ArrayList<Ant>();
-		//for (int i = 0; i < 40; i++) {
-		//	ants.add(new Ant(this));
-		//}
-		//grid.transitionAnts(ants);
 		
 	}
 	
@@ -32,13 +28,15 @@ public class Colony {
 	}
 	
 	public void step(double dt) {
-		if(this.food>200){
+		this.spawnTimer = this.spawnTimer + dt;
+		if(this.food>200 & this.spawnTimer >3000){
 			this.food = this.food-10;
 			Ant newAnt = new Ant(this);
 			this.ants.add(newAnt);
 			ArrayList<Ant> temp = new ArrayList<Ant>();
 			temp.add(newAnt);
 			this.grid.transitionAnts(temp);
+			this.spawnTimer = 0;
 		}
 	}
 }

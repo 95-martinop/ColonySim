@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Grid {
 	
 	public static int N = 0, S = 1, W = 2, E = 3, NW = 4, NE = 5, SW = 6, SE = 7;
-	public static int COLONIES = 5;
+	public static int COLONIES = 4;
 	Colony[] colonies;
 	Cell[][] cell;
 	public int colonyRate = 100;
@@ -22,7 +22,7 @@ public class Grid {
 		colonies = new Colony[COLONIES];
 		
 		for(int i = 0; i<COLONIES; i++){
-			colonies[i]= new Colony(3*(i%2)+3,3*(i/2)+3, this);
+			colonies[i]= new Colony(12*(i%2)+3,15*(i/2)+3, this);
 		}
 		initCells();
 		
