@@ -17,13 +17,14 @@ public class Grid {
 		rows = DisplayGUI.HEIGHT / DisplayGUI.CELLWIDTH;
 		cols = DisplayGUI.WIDTH / DisplayGUI.CELLWIDTH;
 		
-		initCells();
+		
 		
 		colonies = new Colony[COLONIES];
 		
 		for(int i = 0; i<COLONIES; i++){
 			colonies[i]= new Colony(3*(i%2)+3,3*(i/2)+3, this);
 		}
+		initCells();
 		
 		//ArrayList<Ant> ants = new ArrayList<Ant>();
 		//for (int i = 0; i < 200; i++) {
@@ -76,6 +77,9 @@ public class Grid {
 			for(int j = 0; j < cols; j ++){
 				cell[i][j].checkCollisions();
 			}
+		}
+		for(int i = 0; i < this.COLONIES; i++){
+			this.colonies[i].step(dt);
 		}
 	}
 	

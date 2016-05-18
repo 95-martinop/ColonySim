@@ -32,6 +32,7 @@ public class Display extends JPanel implements Runnable {
 	}
 	
 	public void step(double dt){
+		System.out.println(dt);
 		grid.step(dt);
 	}
 	
