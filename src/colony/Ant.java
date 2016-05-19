@@ -30,6 +30,8 @@ public class Ant {
 	private Cell currentCell;
 	private Colony Colony;
 	
+	private boolean flag = false;
+	
 	private final double MAX_VELOCITY;
 	
 	private enum State {
@@ -84,16 +86,16 @@ public class Ant {
 				//	seek(steer);
 				//	break;
 				//}
+				
 				Cell bestCell = null;
 				double bestDist = -1.0;
 				for(Cell c : this.currentCell.neighbors){
 					if(c == null) continue;
-					if(c.food > 0){bestCell = c; break;}
+					if(c.food > 0){bestCell = c;bestDist = 0; break;}
 					int dr = c.row - home.row;
 					int dc = c.col - home.col;
-					double dist = Math.sqrt(Math.pow(dr, 2)+Math.pow(dc, 2));
+					double dist =Math.pow(dr, 2)+Math.pow(dc, 2);
 					if(dist > bestDist & c.pheromones.get(home)> pherThresh){
-						
 						bestCell = c;
 						bestDist = dist;
 					}
@@ -105,6 +107,7 @@ public class Ant {
 				
 				Point2D.Double destPoint = new Point2D.Double((bestCell.row+.5)*DisplayGUI.CELLWIDTH, (bestCell.col+.5)*DisplayGUI.CELLWIDTH);
 				seek(destPoint);
+				break;
 			case OffPath:
 				if(Math.random() < wanderChance){
 					this.state = State.Wander;
@@ -187,6 +190,8 @@ public class Ant {
 				break;
 				
 		}
+		
+		if(flag) System.out.println(this.state);
 		
 		ArrayList<Ant> neighbors = new ArrayList<Ant>(); 
 		for(Cell c: currentCell.neighbors){
@@ -364,6 +369,7 @@ public class Ant {
 		if (cell.row == home.row && cell.col == home.col && hasFood) {
 			home.food++;
 			hasFood = false;
+			flag = true;
 			this.state = State.Follow;
 		}
 	}
