@@ -24,8 +24,8 @@ public class Ant {
 	private Point2D.Double homePoint;
 	private Colony home;
 	public static Double pherThresh=  1.0;
-	private Double wanderChance=.1;
-	private double offPathChance=.1;
+	private Double wanderChance=.0;
+	private double offPathChance=.0;
 	private Point2D.Double followPoint;
 	private Cell currentCell;
 	private Colony Colony;
@@ -96,8 +96,10 @@ public class Ant {
 						int dr = c.row-home.row;
 						int dc = c.col-home.col;
 						if((dr*dr+dc*dc)*(DisplayGUI.CELLWIDTH*DisplayGUI.CELLWIDTH) > pos.distanceSq(homePoint)){
-							totalPher+=c.pheromones.get(home);
-							cells.add(c);
+							if(c.pheromones.get(home)< pherThresh){
+								totalPher+=c.pheromones.get(home);
+								cells.add(c);
+							}
 						}
 					}
 
@@ -110,8 +112,13 @@ public class Ant {
 						}
 					}
 					//point towards cell
-					if(i < cells.size())
+					if(i < cells.size()){
 						this.followPoint = new Point2D.Double((cells.get(i).row+.5)*DisplayGUI.CELLWIDTH,(cells.get(i).col+.5)*DisplayGUI.CELLWIDTH);
+						this.state = State.JoinPath;
+					}
+					else{
+						this.state = State.Wander;
+					}
 				}
 				break;
 			case JoinPath:
@@ -124,7 +131,7 @@ public class Ant {
 					}
 					else{
 						double mag = steer.distance(new Point2D.Double(0, 0));
-						steer.x = this.followPoint.x = this.pos.x;
+						steer.x = this.followPoint.x - this.pos.x;
 						steer.y = this.followPoint.y - this.pos.y;
 						mag = steer.distance(new Point2D.Double(0, 0));
 						if (mag > maxWanderForce) {
