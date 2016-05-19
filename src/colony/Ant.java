@@ -40,7 +40,7 @@ public class Ant {
 		size = Math.random() * size + size;
 		energy = Math.random();
 		
-		wanderCircleDistance = 0.5;
+		wanderCircleDistance = 2;
 		wanderCircleRadius = size * 2;
 		wanderAngleChange = Math.PI/2;
 
@@ -50,22 +50,16 @@ public class Ant {
 
 		color = this.home.color;//new Color(Color.HSBtoRGB((float) Math.random(), 0.7f, 0.7f));
 		this.homePoint = new Point2D.Double((this.home.col+.5) * DisplayGUI.CELLWIDTH, (this.home.row+.5) * DisplayGUI.CELLWIDTH);
-		pos = homePoint;
+		pos = new Point2D.Double(homePoint.x, homePoint.y);
 		
 		col = (int) (pos.x / DisplayGUI.CELLWIDTH);
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
 	}
 
 	public boolean step(double dt, float terrain, Cell currentCell) {
-		// System.out.println("ANT STEP " + dt);
-		//if(this.pos.x > this.homePoint.x - (.5 * DisplayGUI.CELLWIDTH) &
-		//		this.pos.x < this.homePoint.x + (.5 * DisplayGUI.CELLWIDTH) &
-		//		this.pos.y > this.homePoint.y - (.5 * DisplayGUI.CELLWIDTH) &
-		//		this.pos.y < this.homePoint.y + (.5 * DisplayGUI.CELLWIDTH) &
-		//		this.hasFood == false
-		//		){
-		//	this.state = this.state.Wander;
-		//}
+		tryTakeFood(currentCell);
+		tryLeaveFood(currentCell);
+		
 		double sec = dt / 1000.0;
 		
 		double mvx = vel.x;
@@ -144,8 +138,8 @@ public class Ant {
 				break;
 			case Home:
 				//steer = this.homePoint;
-				steer.x = this.homePoint.x - this.pos.x;
-				steer.y = this.homePoint.y - this.pos.y;
+				steer.x = (this.homePoint.x - this.pos.x);
+				steer.y = (this.homePoint.y - this.pos.y);
 				mag = steer.distance(new Point2D.Double(0, 0));
 				if (mag > maxWanderForce) {
 					steer.x *= maxWanderForce/mag;
@@ -153,6 +147,8 @@ public class Ant {
 				}
 				break;
 		}
+		
+		System.out.println(state);
 		
 		// steer
 		vel.x += steer.x;
@@ -249,7 +245,7 @@ public class Ant {
 		disp = getDisplacement(disp, wanderAngle);
 		
 		wanderAngle += Math.random() * wanderAngleChange - wanderAngleChange * 0.5;
-		System.out.println(wanderAngle);
+		//System.out.println(wanderAngle);
 		
 		return new Point2D.Double((center.x + disp.x), (center.y + disp.y));
 	}
@@ -262,16 +258,18 @@ public class Ant {
 		return result;
 	}
 	
-	public boolean decideFood(){
-		return true;
-		
+	public void tryTakeFood(Cell cell){
+		if (cell.food > 0 && !hasFood) {
+			cell.food--;
+			hasFood = true;
+			this.state = State.Home;
+		}
 	}
-	public void pickUpFood(){
-		this.state = this.state.Home;
-		this.hasFood = true;
-	}
-	public void dropOffFood(){
-		this.state = this.state.Wander;
-		this.hasFood = false;
+	public void tryLeaveFood(Cell cell){
+		if (cell.row == home.row && cell.col == home.col && hasFood) {
+			home.food++;
+			hasFood = false;
+			this.state = State.Wander;
+		}
 	}
 }

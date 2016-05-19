@@ -78,7 +78,7 @@ public class Grid {
 				cell[i][j].checkCollisions();
 			}
 		}
-		for(int i = 0; i < this.COLONIES; i++){
+		for(int i = 0; i < Grid.COLONIES; i++){
 			this.colonies[i].step(dt);
 		}
 	}
@@ -96,7 +96,7 @@ public class Grid {
 				cell[i][j].draw(g);
 			}
 		}
-		for(int i = 0; i <this.COLONIES; i++){
+		for(int i = 0; i <Grid.COLONIES; i++){
 			this.colonies[i].draw(g);
 		}
 		for(int i = 0; i < rows; i ++){

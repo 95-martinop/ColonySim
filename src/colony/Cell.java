@@ -13,9 +13,8 @@ public class Cell {
 	int row, col;
 	ArrayList<Ant> ants;
 	
-	float growth;
 	float terrain;
-	float foodRate;
+	float growth;
 	int food;
 	HashMap<Colony,Double> pheromones;
 	
@@ -28,16 +27,23 @@ public class Cell {
 		ants = new ArrayList<Ant>();
 		neighbors = new Cell[8];
 		
-		growth = (float) Math.random();
 		terrain = (float) (Math.random() * 0.75);
 		pheromones = new HashMap<Colony,Double>();
 		food = 0;
-		foodRate = (float) (Math.random()*.01);
+
+		growth = (float) (Math.random());
+		
+		/*
+		growth = 0;
+		if (row == 10 && col == 10) {
+			growth = 0.5f;
+		}
+		*/
 	}
 	
 	public ArrayList<Ant> step(double dt) {
 		//System.out.println("CELL STEP");
-		if(Math.random()<this.foodRate){
+		if(Math.random() < this.growth*dt/1000){
 			this.food++;
 		}
 		
@@ -68,10 +74,6 @@ public class Cell {
 	
 	public void checkCollisions() {
 		for (int a = 0; a < ants.size(); a++) {
-			if(ants.get(a).decideFood()&&this.food>0){
-				this.food--;
-				ants.get(a).pickUpFood();
-			}
 			for (int i = 0; i < neighbors.length; i++) {
 				if (neighbors[i] == null) {
 					continue;
@@ -87,6 +89,7 @@ public class Cell {
 			}
 		}
 	}
+	
 	public void addColony(Colony colony){
 		this.colony = colony;
 		this.hasColony = true;
