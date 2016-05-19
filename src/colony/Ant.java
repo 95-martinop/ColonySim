@@ -30,6 +30,8 @@ public class Ant {
 	private Cell currentCell;
 	private Colony Colony;
 	
+	private final double MAX_VELOCITY;
+	
 	private enum State {
 		Follow, Wander, Home, OffPath, JoinPath
 	}
@@ -58,6 +60,7 @@ public class Ant {
 		col = (int) (pos.x / DisplayGUI.CELLWIDTH);
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
 		
+		MAX_VELOCITY = 10 * size;
 	}
 
 	public boolean step(double dt, float terrain, Cell currentCell) {
@@ -76,14 +79,9 @@ public class Ant {
 		switch (state) {
 			case Follow:
 				if (currentCell.pheromones.get(this.home)>pherThresh){
-					double mag = steer.distance(new Point2D.Double(0, 0));
-					steer.x = this.pos.x + this.homePoint.x;
-					steer.y = this.pos.y + this.homePoint.y;
-					mag = steer.distance(new Point2D.Double(0, 0));
-					if (mag > maxWanderForce) {
-						steer.x *= maxWanderForce/mag;
-						steer.y *= maxWanderForce/mag;
-					}
+					steer.x = this.pos.x - this.homePoint.x;
+					steer.y = this.pos.y - this.homePoint.y;
+					seek(steer);
 					break;
 				}
 			case OffPath:
@@ -141,30 +139,22 @@ public class Ant {
 					steer.x *= maxWanderForce/mag;
 					steer.y *= maxWanderForce/mag;
 				}
+				// steer
+				vel.x += steer.x;
+				vel.y += steer.y;
 				break;
 			case Home:
-				steer.x = (this.homePoint.x - this.pos.x);
-				steer.y = (this.homePoint.y - this.pos.y);
-				mag = steer.distance(new Point2D.Double(0, 0));
-				if (mag > maxWanderForce) {
-					steer.x *= maxWanderForce/mag;
-					steer.y *= maxWanderForce/mag;
-				}
+				seek(homePoint);
 				break;
 		}
 		
 		System.out.println(state);
 		
-		// steer
-		vel.x += steer.x;
-		vel.y += steer.y;
-
 		// clamp velocity to maximum
 		double mag = Point2D.Double.distance(vel.x, vel.y, 0, 0);
-		double maxVel = Point2D.Double.distance(0, 0, mvx, mvy);
-		if (mag > maxVel) {
-			vel.x *= maxVel/mag;
-			vel.y *= maxVel/mag;
+		if (mag > MAX_VELOCITY) {
+			vel.x *= MAX_VELOCITY/mag;
+			vel.y *= MAX_VELOCITY/mag;
 		}
 		
 		
@@ -254,6 +244,28 @@ public class Ant {
 		//System.out.println(wanderAngle);
 		
 		return new Point2D.Double((center.x + disp.x), (center.y + disp.y));
+	}
+	
+	private void thrust(Point2D.Double force) {
+		scale(force, 0.1 * MAX_VELOCITY);
+		this.vel.x += force.x;
+		this.vel.y += force.y;
+	}
+	
+	private void seek(Point2D.Double target) {
+		Point2D.Double aim = new Point2D.Double(target.x - pos.x, target.y - pos.y);
+		scale(aim, MAX_VELOCITY);
+		aim.x -= vel.x;
+		aim.y -= vel.y;
+		thrust(aim);
+	}
+	
+	private void scale(Point2D.Double vector, double val) {
+		double len = vector.distance(new Point2D.Double(0, 0));
+		if (len > val) {
+			vector.x *= val/len;
+			vector.y *= val/len;
+		}
 	}
 	
 	private Point2D.Double getDisplacement(Point2D.Double vector, double value) {
