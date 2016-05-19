@@ -28,7 +28,6 @@ public class Ant {
 	private double offPathChance=.0;
 	private Point2D.Double followPoint;
 	private Cell currentCell;
-	private Colony Colony;
 	
 	private boolean flag = false;
 	
@@ -40,12 +39,11 @@ public class Ant {
 	
 	private State state = State.Wander;
 
-	public Ant(Colony Colony) {
-		this.home = Colony;
+	public Ant(Colony colony) {
+		this.home = colony;
 		size = DisplayGUI.CELLWIDTH / 8.0; // 8 is correct... Orion says so
 		size = Math.random() * size + size;
 		energy = Math.random();
-		this.Colony = Colony;
 		
 		wanderCircleDistance = 2;
 		wanderCircleRadius = size * 2;
@@ -170,15 +168,7 @@ public class Ant {
 					this.state = State.Follow;
 					break;
 				}
-				steer = wander(dt);
-				double mag = steer.distance(new Point2D.Double(0, 0));
-				if (mag > maxWanderForce) {
-					steer.x *= maxWanderForce/mag;
-					steer.y *= maxWanderForce/mag;
-				}
-				// steer
-				vel.x += steer.x;
-				vel.y += steer.y;
+				wander(dt);
 				break;
 			case Home:
 				seek(homePoint);
@@ -293,16 +283,12 @@ public class Ant {
 		this.pos.y -= ny * correctDist;
 	}
 	
-	private Point2D.Double wander(double dt) {
+	private void wander(double dt) {
 		Point2D.Double center = new Point2D.Double(vel.x * wanderCircleDistance, vel.y * wanderCircleDistance);
 		Point2D.Double disp = new Point2D.Double(0, -1 * wanderCircleRadius);
-		
 		disp = getDisplacement(disp, wanderAngle);
-		
 		wanderAngle += Math.random() * wanderAngleChange - wanderAngleChange * 0.5;
-		//System.out.println(wanderAngle);
-		
-		return new Point2D.Double((center.x + disp.x), (center.y + disp.y));
+		seek(new Point2D.Double(pos.x + center.x + disp.x, pos.y + center.y + disp.y));
 	}
 	
 	private void thrust(Point2D.Double force) {
