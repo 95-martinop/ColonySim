@@ -58,11 +58,21 @@ public class Cell {
 		
 		ArrayList<Ant> transitions = new ArrayList<Ant>();
 		for (int a = 0; a < ants.size(); a++) {
-			boolean transition = ants.get(a).step(dt, terrain,this); 
-			if (transition) {
+			Ant ant = ants.get(a);
+			boolean transition = ant.step(dt, terrain,this);
+			if (ant.energy <= 0) {
+				if (ant.hasFood) {
+					this.food++;
+				}
+				this.food++;
+				ants.remove(a);
+				a--;
+			}
+			else if (transition) {
 				transitions.add(ants.remove(a));
 				a--;
 			}
+			
 		}
 		
 		for(Colony c:pheromones.keySet()){

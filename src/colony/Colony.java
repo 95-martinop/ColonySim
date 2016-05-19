@@ -9,7 +9,7 @@ public class Colony {
 	int row, col;
 	public Color color;
 	double food;
-	ArrayList<Ant> ants = new ArrayList<Ant>();
+	
 	Grid grid;
 	double spawnTimer;
 	public Colony(int r, int c, Grid grid){
@@ -34,7 +34,6 @@ public class Colony {
 		if(this.food>200 & this.spawnTimer >500){
 			this.food = this.food-10;
 			Ant newAnt = new Ant(this);
-			this.ants.add(newAnt);
 			ArrayList<Ant> temp = new ArrayList<Ant>();
 			temp.add(newAnt);
 			this.grid.transitionAnts(temp);

@@ -17,8 +17,6 @@ public class Grid {
 		rows = DisplayGUI.HEIGHT / DisplayGUI.CELLWIDTH;
 		cols = DisplayGUI.WIDTH / DisplayGUI.CELLWIDTH;
 		
-		
-		
 		colonies = new Colony[COLONIES];
 		colonies[0] = new Colony(3, 3, this);
 		colonies[1] = new Colony(rows - 4, 3, this);

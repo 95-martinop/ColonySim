@@ -8,9 +8,12 @@ import java.util.ArrayList;
 
 public class Ant {
 
-	double size, energy;
+	double size;
+	double energy = 1;
 	Point2D.Double pos, vel, steer;
 
+	public boolean hasFood = false;
+	
 	int row, col;
 
 	Color color;
@@ -19,28 +22,28 @@ public class Ant {
 	private double wanderCircleDistance;
 	private double wanderCircleRadius;
 	private double wanderAngleChange;
-	private boolean hasFood = false;
 	private Point2D.Double homePoint;
 	private Colony home;
 	public static Double pherThresh=  .1;
-	private Double wanderChance=.0;
-	private double offPathChance=.0;
-	private Point2D.Double followPoint;
+	private Double wanderChance=.0025;
 	private Cell currentCell;
 	
 	private final double MAX_VELOCITY;
 	
 	private enum State {
-		Follow, Wander, Home, OffPath, JoinPath
+		Follow, Wander, Home
 	}
 	
 	private State state = State.Wander;
-
+	
+	private final double MAX_WANDER_DISTANCE = DisplayGUI.CELLWIDTH * 25;
+	private int wTimer;
+	private int wThresh = 500;
+	
 	public Ant(Colony colony) {
 		this.home = colony;
 		size = DisplayGUI.CELLWIDTH / 8.0; // 8 is correct... Orion says so
 		size = Math.random() * size + size;
-		energy = Math.random();
 		
 		wanderCircleDistance = 2;
 		wanderCircleRadius = size * 2;
@@ -58,10 +61,10 @@ public class Ant {
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
 		
 		MAX_VELOCITY = 8 * size;
+		wTimer = 0;
 	}
 
 	public boolean step(double dt, float terrain, Cell currentCell) {
-		
 		tryTakeFood(currentCell);
 		tryLeaveFood(currentCell);
 		
@@ -75,6 +78,11 @@ public class Ant {
 		
 		switch (state) {
 			case Follow:
+				if (Math.random() < wanderChance) {
+					this.state = State.Wander;
+					break;
+				}
+				
 				Cell bestCell = null;
 				double bestDist = -1.0;
 				for(Cell c : this.currentCell.neighbors){
@@ -92,70 +100,18 @@ public class Ant {
 					this.state = State.Wander;
 					break;
 				}
-				
+			
 				Point2D.Double destPoint = new Point2D.Double((bestCell.col+.5)*DisplayGUI.CELLWIDTH, (bestCell.row+.5)*DisplayGUI.CELLWIDTH);
 				seek(destPoint);
 				break;
-//			case OffPath:
-//				if(Math.random() < wanderChance){
-//					this.state = State.Wander;
-//				}
-//				else {
-//					Double totalPher = 0.0;
-//					ArrayList<Cell> cells = new ArrayList<Cell>();
-//					for (Cell c :currentCell.neighbors){
-//						if(c == null) continue;
-//						int dr = c.row-home.row;
-//						int dc = c.col-home.col;
-//						if((dr*dr+dc*dc)*(DisplayGUI.CELLWIDTH*DisplayGUI.CELLWIDTH) > pos.distanceSq(homePoint)){
-//							if(c.pheromones.get(home)< pherThresh){
-//								totalPher+=c.pheromones.get(home);
-//								cells.add(c);
-//							}
-//						}
-//					}
-//
-//					int i = 0;
-//					totalPher = Math.random()*totalPher;
-//					while (totalPher>0){
-//						for (i=0;i<cells.size();i++){
-//							totalPher-= cells.get(i).pheromones.get(home);
-//							if (totalPher <= 0) break;
-//						}
-//					}
-//					//point towards cell
-//					if(i < cells.size()){
-//						this.followPoint = new Point2D.Double((cells.get(i).row+.5)*DisplayGUI.CELLWIDTH,(cells.get(i).col+.5)*DisplayGUI.CELLWIDTH);
-//						this.state = State.JoinPath;
-//					}
-//					else{
-//						this.state = State.Wander;
-//					}
-//				}
-//				break;
-//			case JoinPath:
-//				if(Math.random()<offPathChance){
-//					this.state = State.OffPath;
-//				}
-//				else {
-//					if(currentCell.pheromones.get(this.home)>pherThresh){
-//						this.state = State.Follow;
-//					}
-//					else{
-//						double mag = steer.distance(new Point2D.Double(0, 0));
-//						steer.x = this.followPoint.x - this.pos.x;
-//						steer.y = this.followPoint.y - this.pos.y;
-//						mag = steer.distance(new Point2D.Double(0, 0));
-//						if (mag > maxWanderForce) {
-//							steer.x *= maxWanderForce/mag;
-//							steer.y *= maxWanderForce/mag;
-//						}
-//					}
-//				}
-//				break;
 			case Wander:
-				if(currentCell.pheromones.get(this.home)>pherThresh){
+				wTimer += 1;
+				if(wTimer>wThresh && currentCell.pheromones.get(home)>pherThresh){
 					this.state = State.Follow;
+					wTimer =0;
+				}
+				if (Point2D.distance(pos.x, pos.y, home.col * DisplayGUI.CELLWIDTH, home.row * DisplayGUI.CELLWIDTH) > MAX_WANDER_DISTANCE) {
+					this.state = State.Home;
 					break;
 				}
 				wander(dt);
@@ -163,15 +119,21 @@ public class Ant {
 			case Home:
 				seek(homePoint);
 				if(!(currentCell.row == home.row & currentCell.col == home.col)){
-					double p = currentCell.pheromones.get(home);
-					p += dt/300; 
-					currentCell.pheromones.put(home, p);
+					if (hasFood) {
+						double p = currentCell.pheromones.get(home);
+						p += dt/300; 
+						currentCell.pheromones.put(home, p);						
+					}
 				}
 				break;
 				
 		}
 		
+		energy -= dt/60000;
 		
+		if (energy < 0.35) {
+			this.state = State.Home;
+		}
 		
 		ArrayList<Ant> neighbors = new ArrayList<Ant>(); 
 		for(Cell c: currentCell.neighbors){
@@ -184,9 +146,6 @@ public class Ant {
 			avoid(leadPoint(a),100);
 		}
 		
-		
-		//if(state != State.Wander) System.out.println(state);
-		
 		// clamp velocity to maximum
 		double mag = Point2D.Double.distance(vel.x, vel.y, 0, 0);
 		if (mag > MAX_VELOCITY) {
@@ -194,13 +153,12 @@ public class Ant {
 			vel.y *= MAX_VELOCITY/mag;
 		}
 		
-		
 		vx = vel.x * (1 - terrain);
 		vy = vel.y * (1 - terrain);
 		
 		pos.x += vx * sec;
 		pos.y += vy * sec;
-
+		
 		if (pos.x < size) {
 			pos.x = size;
 			vel.x *= -1;
@@ -342,9 +300,16 @@ public class Ant {
 		}
 	}
 	public void tryLeaveFood(Cell cell){
-		if (cell.row == home.row && cell.col == home.col && hasFood) {
-			home.food++;
-			hasFood = false;
+		if (state == State.Home && cell.row == home.row && cell.col == home.col) {
+			if (hasFood) {
+				home.food++;
+				hasFood = false;
+				this.energy = 1;
+			}
+			else if (home.food > 0) {
+				home.food--;
+				this.energy = 1;
+			}
 			this.state = State.Follow;
 		}
 	}
