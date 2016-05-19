@@ -31,14 +31,13 @@ public class Cell {
 		pheromones = new HashMap<Colony,Double>();
 		food = 0;
 
-		growth = (float) (Math.random());
+		//growth = (float) (Math.random());
 		
-		/*
 		growth = 0;
 		if (row == 10 && col == 10) {
 			growth = 0.5f;
 		}
-		*/
+		
 	}
 	
 	public ArrayList<Ant> step(double dt) {
