@@ -15,7 +15,7 @@ public class Colony {
 	public Colony(int r, int c, Grid grid){
 		this.row = r;
 		this.col = c;
-		this.food = 500;
+		this.food = 230;
 		this.color = new Color(Color.HSBtoRGB((float) Math.random(), 0.7f, 0.7f));
 		this.grid = grid;
 		

@@ -8,7 +8,7 @@ public class Grid {
 	public static int N = 0, S = 1, W = 2, E = 3, NW = 4, NE = 5, SW = 6, SE = 7;
 	public static int COLONIES = 4;
 	Colony[] colonies;
-	Cell[][] cell;
+	public Cell[][] cell;
 	public int colonyRate = 100;
 	
 	int rows, cols;
@@ -37,7 +37,7 @@ public class Grid {
 		cell = new Cell[rows][cols];
 		for(int i = 0; i < rows; i ++){
 			for(int j = 0; j < cols; j ++){
-				cell[i][j] = new Cell(i,j);
+				cell[i][j] = new Cell(i,j,this);
 				for(Colony c:this.colonies){
 					cell[i][j].pheromones.put(c, 0.0);
 				}

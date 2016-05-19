@@ -26,11 +26,13 @@ public class Cell {
 	
 	private static final int MAX_FOOD = 20;
 	
-	public Cell(int row, int col){
+	public Cell(int row, int col, Grid gr){
 		this.row = row;
 		this.col = col;
 		ants = new ArrayList<Ant>();
 		neighbors = new Cell[8];
+		
+		
 		
 		terrain = (float) (Math.random() * 0.1);
 		pheromones = new HashMap<Colony,Double>();
@@ -78,7 +80,7 @@ public class Cell {
 		for(Colony c:pheromones.keySet()){
 			if (pheromones.get(c) > Ant.pherThresh) {
 				g.setColor(c.color);
-				g.setStroke(new BasicStroke(pheromones.get(c).floatValue()));
+				g.setStroke(new BasicStroke(pheromones.get(c).floatValue()/2));
 				g.drawRect(col*DisplayGUI.CELLWIDTH, row*DisplayGUI.CELLWIDTH,
 						DisplayGUI.CELLWIDTH, DisplayGUI.CELLWIDTH);
 			}

@@ -23,7 +23,7 @@ public class Ant {
 	private boolean hasFood = false;
 	private Point2D.Double homePoint;
 	private Colony home;
-	public static Double pherThresh=  1.0;
+	public static Double pherThresh=  .1;
 	private Double wanderChance=.0;
 	private double offPathChance=.0;
 	private Point2D.Double followPoint;
@@ -78,12 +78,33 @@ public class Ant {
 		
 		switch (state) {
 			case Follow:
-				if (currentCell.pheromones.get(this.home)>pherThresh){
-					steer.x = this.pos.x - this.homePoint.x;
-					steer.y = this.pos.y - this.homePoint.y;
-					seek(steer);
+				//if (currentCell.pheromones.get(this.home)>pherThresh){
+				//	steer.x = this.pos.x - this.homePoint.x;
+				//	steer.y = this.pos.y - this.homePoint.y;
+				//	seek(steer);
+				//	break;
+				//}
+				Cell bestCell = null;
+				double bestDist = -1.0;
+				for(Cell c : this.currentCell.neighbors){
+					if(c == null) continue;
+					if(c.food > 0){bestCell = c; break;}
+					int dr = c.row - home.row;
+					int dc = c.col - home.col;
+					double dist = Math.sqrt(Math.pow(dr, 2)+Math.pow(dc, 2));
+					if(dist > bestDist & c.pheromones.get(home)> pherThresh){
+						
+						bestCell = c;
+						bestDist = dist;
+					}
+				}
+				if(bestDist == -1){
+					this.state = State.Wander;
 					break;
 				}
+				
+				Point2D.Double destPoint = new Point2D.Double((bestCell.row+.5)*DisplayGUI.CELLWIDTH, (bestCell.col+.5)*DisplayGUI.CELLWIDTH);
+				seek(destPoint);
 			case OffPath:
 				if(Math.random() < wanderChance){
 					this.state = State.Wander;
@@ -158,9 +179,11 @@ public class Ant {
 				break;
 			case Home:
 				seek(homePoint);
-				double p = currentCell.pheromones.get(home);
-				p += dt/1000; 
-				currentCell.pheromones.put(home, p);
+				if(!(currentCell.row == home.row & currentCell.col == home.col)){
+					double p = currentCell.pheromones.get(home);
+					p += dt/300; 
+					currentCell.pheromones.put(home, p);
+				}
 				break;
 				
 		}
@@ -341,7 +364,7 @@ public class Ant {
 		if (cell.row == home.row && cell.col == home.col && hasFood) {
 			home.food++;
 			hasFood = false;
-			this.state = State.Wander;
+			this.state = State.Follow;
 		}
 	}
 }
