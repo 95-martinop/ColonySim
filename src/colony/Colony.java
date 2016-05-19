@@ -1,5 +1,6 @@
 package colony;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
@@ -23,7 +24,8 @@ public class Colony {
 	public void draw(Graphics2D g) {
 		// ants per cell indicator
 		g.setColor(this.color);
-		g.fillRect(col*DisplayGUI.CELLWIDTH, row*DisplayGUI.CELLWIDTH,
+		g.setStroke(new BasicStroke(2));
+		g.drawRect(col*DisplayGUI.CELLWIDTH, row*DisplayGUI.CELLWIDTH,
 				DisplayGUI.CELLWIDTH, DisplayGUI.CELLWIDTH);
 	}
 	

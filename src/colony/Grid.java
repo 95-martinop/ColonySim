@@ -20,10 +20,10 @@ public class Grid {
 		
 		
 		colonies = new Colony[COLONIES];
-		
-		for(int i = 0; i<COLONIES; i++){
-			colonies[i]= new Colony(12*(i%2)+3,15*(i/2)+3, this);
-		}
+		colonies[0] = new Colony(3, 3, this);
+		colonies[1] = new Colony(rows - 4, 3, this);
+		colonies[2] = new Colony(3, cols - 4, this);
+		colonies[3] = new Colony(rows - 4, cols - 4, this);
 		initCells();
 		
 		//ArrayList<Ant> ants = new ArrayList<Ant>();
@@ -38,6 +38,10 @@ public class Grid {
 		for(int i = 0; i < rows; i ++){
 			for(int j = 0; j < cols; j ++){
 				cell[i][j] = new Cell(i,j);
+				for(Colony c:this.colonies){
+					cell[i][j].pheromones.put(c, 0.0);
+				}
+				
 				
 			}
 		}

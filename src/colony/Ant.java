@@ -23,9 +23,9 @@ public class Ant {
 	private boolean hasFood = false;
 	private Point2D.Double homePoint;
 	private Colony home;
-	private Double pherThresh=  1.0;
-	private Double wanderChance=.3;
-	private double offPathChance=.3;
+	public static Double pherThresh=  1.0;
+	private Double wanderChance=.1;
+	private double offPathChance=.1;
 	private Point2D.Double followPoint;
 	private Cell currentCell;
 	private Colony Colony;
@@ -40,7 +40,7 @@ public class Ant {
 
 	public Ant(Colony Colony) {
 		this.home = Colony;
-		size = DisplayGUI.CELLWIDTH / 8.0;
+		size = DisplayGUI.CELLWIDTH / 8.0; // 8 is correct... Orion says so
 		size = Math.random() * size + size;
 		energy = Math.random();
 		this.Colony = Colony;
@@ -60,7 +60,7 @@ public class Ant {
 		col = (int) (pos.x / DisplayGUI.CELLWIDTH);
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
 		
-		MAX_VELOCITY = 10 * size;
+		MAX_VELOCITY = 8 * size;
 	}
 
 	public boolean step(double dt, float terrain, Cell currentCell) {
@@ -92,6 +92,7 @@ public class Ant {
 					Double totalPher = 0.0;
 					ArrayList<Cell> cells = new ArrayList<Cell>();
 					for (Cell c :currentCell.neighbors){
+						if(c == null) continue;
 						int dr = c.row-home.row;
 						int dc = c.col-home.col;
 						if((dr*dr+dc*dc)*(DisplayGUI.CELLWIDTH*DisplayGUI.CELLWIDTH) > pos.distanceSq(homePoint)){
@@ -109,7 +110,8 @@ public class Ant {
 						}
 					}
 					//point towards cell
-					this.followPoint = new Point2D.Double((cells.get(i).row+.5)*DisplayGUI.CELLWIDTH,(cells.get(i).col+.5)*DisplayGUI.CELLWIDTH);
+					if(i < cells.size())
+						this.followPoint = new Point2D.Double((cells.get(i).row+.5)*DisplayGUI.CELLWIDTH,(cells.get(i).col+.5)*DisplayGUI.CELLWIDTH);
 				}
 				break;
 			case JoinPath:
@@ -133,6 +135,10 @@ public class Ant {
 				}
 				break;
 			case Wander:
+				if(currentCell.pheromones.get(this.home)>pherThresh){
+					this.state = State.Follow;
+					break;
+				}
 				steer = wander(dt);
 				double mag = steer.distance(new Point2D.Double(0, 0));
 				if (mag > maxWanderForce) {
@@ -145,10 +151,26 @@ public class Ant {
 				break;
 			case Home:
 				seek(homePoint);
+				double p = currentCell.pheromones.get(home);
+				p += dt/1000; 
+				currentCell.pheromones.put(home, p);
 				break;
+				
 		}
 		
-		System.out.println(state);
+		ArrayList<Ant> neighbors = new ArrayList<Ant>(); 
+		for(Cell c: currentCell.neighbors){
+			if(c == null){continue;}
+			neighbors.addAll(c.ants);
+		}
+		neighbors.addAll(currentCell.ants);
+		
+		for(Ant a: neighbors){
+			avoid(leadPoint(a),100);
+		}
+		
+		
+		//if(state != State.Wander) System.out.println(state);
 		
 		// clamp velocity to maximum
 		double mag = Point2D.Double.distance(vel.x, vel.y, 0, 0);
@@ -197,7 +219,9 @@ public class Ant {
 		g.fillOval((int) (pos.x - size), (int) (pos.y - size), (int) size * 2, (int) size * 2);
 		
 		// draw velocity
-		Point2D.Double dir = new Point2D.Double(pos.x + vel.x, pos.y + vel.y);
+		Point2D.Double vec = new Point2D.Double(vel.x,vel.y);
+		scale(vec,size*2);
+		Point2D.Double dir = new Point2D.Double(pos.x + vec.x, pos.y + vec.y);
 		g.setStroke(new BasicStroke(2));
 		g.drawLine((int) pos.x, (int) pos.y, (int) dir.x, (int) dir.y);
 		
@@ -247,9 +271,19 @@ public class Ant {
 	}
 	
 	private void thrust(Point2D.Double force) {
-		scale(force, 0.1 * MAX_VELOCITY);
+		scale(force, 0.5 * MAX_VELOCITY);
 		this.vel.x += force.x;
 		this.vel.y += force.y;
+	}
+	
+	private Point2D.Double leadPoint(Ant a){
+		Point2D.Double point = new Point2D.Double(a.pos.x, a.pos.y);
+		
+		double p = pos.distance(a.pos)/MAX_VELOCITY;
+		
+		point.x += a.vel.x * p;
+		point.y += a.vel.y * p;
+		return point;
 	}
 	
 	private void seek(Point2D.Double target) {
@@ -259,6 +293,18 @@ public class Ant {
 		aim.y -= vel.y;
 		thrust(aim);
 	}
+	
+	private void avoid(Point2D.Double target,double strength) {
+		if(pos.distance(target)> strength * MAX_VELOCITY){
+			return;
+		}
+		Point2D.Double aim = new Point2D.Double(target.x - pos.x, target.y - pos.y);
+		scale(aim, (strength * MAX_VELOCITY)- pos.distance(target));
+		aim.x = vel.x-aim.x;
+		aim.y = vel.y-aim.y;
+		thrust(aim);
+	}
+	
 	
 	private void scale(Point2D.Double vector, double val) {
 		double len = vector.distance(new Point2D.Double(0, 0));
@@ -279,6 +325,7 @@ public class Ant {
 	public void tryTakeFood(Cell cell){
 		if (cell.food > 0 && !hasFood) {
 			cell.food--;
+			cell.growth *= 0.8;
 			hasFood = true;
 			this.state = State.Home;
 		}
