@@ -29,7 +29,7 @@ public class Colony {
 	
 	public void step(double dt) {
 		this.spawnTimer = this.spawnTimer + dt;
-		if(this.food>200 & this.spawnTimer >3000){
+		if(this.food>200 & this.spawnTimer >500){
 			this.food = this.food-10;
 			Ant newAnt = new Ant(this);
 			this.ants.add(newAnt);

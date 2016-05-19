@@ -27,6 +27,8 @@ public class Ant {
 	private Double wanderChance=.3;
 	private double offPathChance=.3;
 	private Point2D.Double followPoint;
+	private Cell currentCell;
+	private Colony Colony;
 	
 	private enum State {
 		Follow, Wander, Home, OffPath, JoinPath
@@ -39,6 +41,7 @@ public class Ant {
 		size = DisplayGUI.CELLWIDTH / 8.0;
 		size = Math.random() * size + size;
 		energy = Math.random();
+		this.Colony = Colony;
 		
 		wanderCircleDistance = 0.5;
 		wanderCircleRadius = size * 2;
@@ -54,6 +57,7 @@ public class Ant {
 		
 		col = (int) (pos.x / DisplayGUI.CELLWIDTH);
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
+		
 	}
 
 	public boolean step(double dt, float terrain, Cell currentCell) {
@@ -66,6 +70,7 @@ public class Ant {
 		//		){
 		//	this.state = this.state.Wander;
 		//}
+		this.currentCell = currentCell;
 		double sec = dt / 1000.0;
 		
 		double mvx = vel.x;
@@ -143,7 +148,6 @@ public class Ant {
 				}
 				break;
 			case Home:
-				//steer = this.homePoint;
 				steer.x = this.homePoint.x - this.pos.x;
 				steer.y = this.homePoint.y - this.pos.y;
 				mag = steer.distance(new Point2D.Double(0, 0));
@@ -165,6 +169,7 @@ public class Ant {
 			vel.x *= maxVel/mag;
 			vel.y *= maxVel/mag;
 		}
+		
 		
 		vx = vel.x * (1 - terrain);
 		vy = vel.y * (1 - terrain);
@@ -273,5 +278,6 @@ public class Ant {
 	public void dropOffFood(){
 		this.state = this.state.Wander;
 		this.hasFood = false;
+		if(this.currentCell.row == this.Colony.row & this.currentCell.col == this.Colony.col)
 	}
 }

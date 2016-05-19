@@ -32,7 +32,7 @@ public class Cell {
 		terrain = (float) (Math.random() * 0.75);
 		pheromones = new HashMap<Colony,Double>();
 		food = 0;
-		foodRate = (float) (Math.random()*.01);
+		foodRate = (float) (Math.random()*.1);
 	}
 	
 	public ArrayList<Ant> step(double dt) {
