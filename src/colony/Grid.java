@@ -21,7 +21,7 @@ public class Grid {
 		colonies[0] = new Colony(3, 3, this);
 		colonies[1] = new Colony(rows - 4, 3, this);
 		colonies[2] = new Colony(3, cols - 4, this);
-		colonies[3] = new Colony(rows - 4, cols - 4, this);
+		colonies[3] = new Colony(rows - 3, cols - 3, this);
 		initCells();
 		
 		//ArrayList<Ant> ants = new ArrayList<Ant>();

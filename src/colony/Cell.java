@@ -24,8 +24,11 @@ public class Cell {
 	
 	private static final double PHERO_DECAY = 0.05;
 	private static final double PHERO_CAP = 40;
+	public double PHERO_RESET_TIME = 30;
+	public double pheroTimer = 0;
 	
 	private static final int MAX_FOOD = 20;
+	
 	
 	public Cell(int row, int col, Grid gr){
 		this.row = row;
@@ -49,6 +52,8 @@ public class Cell {
 	}
 	
 	public ArrayList<Ant> step(double dt) {
+		this.pheroTimer += dt/100000;
+		
 		//System.out.println("CELL STEP");
 		if(Math.random() < this.growth*dt/1000){
 			this.food++;
@@ -74,10 +79,11 @@ public class Cell {
 				a--;
 			}
 			
+			
 		}
 		
 		for(Colony c:pheromones.keySet()){
-			pheromones.put(c, Math.min(25,Math.max(0, pheromones.get(c) - Cell.PHERO_DECAY * dt/1000)));
+			pheromones.put(c, Math.min(25,Math.max(0, pheromones.get(c) - this.pheroTimer * dt/1000)));
 		}
 		
 		return transitions;

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Ant {
 
 	double size;
-	double energy = 1;
+	double energy = 2;
 	Point2D.Double pos, vel, steer;
 
 	public boolean hasFood = false;
@@ -25,7 +25,7 @@ public class Ant {
 	private Point2D.Double homePoint;
 	private Colony home;
 	public static Double pherThresh=  .1;
-	private Double wanderChance=.0025;
+	private Double wanderChance=.001;
 	private Cell currentCell;
 	
 	private final double MAX_VELOCITY;
@@ -125,6 +125,7 @@ public class Ant {
 					if (hasFood) {
 						double p = currentCell.pheromones.get(home);
 						p += dt/300; 
+						currentCell.pheroTimer = 0.00;
 						currentCell.pheromones.put(home, p);						
 					}
 				}
@@ -352,7 +353,7 @@ public class Ant {
 			if (hasFood) {
 				home.food++;
 				hasFood = false;
-				this.energy = 1;
+				this.energy = 2;
 			}
 			else if (home.food > 0) {
 				home.food--;
