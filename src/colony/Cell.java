@@ -22,7 +22,8 @@ public class Cell {
 	boolean hasColony = false;
 	Colony colony = null;
 	
-	private static final double PHERO_DECAY = 0.02;
+	private static final double PHERO_DECAY = 0.05;
+	private static final double PHERO_CAP = 40;
 	
 	private static final int MAX_FOOD = 20;
 	
@@ -64,7 +65,7 @@ public class Cell {
 				if (ant.hasFood) {
 					this.food++;
 				}
-				this.food++;
+				this.food += ant.size;
 				ants.remove(a);
 				a--;
 			}
@@ -76,7 +77,7 @@ public class Cell {
 		}
 		
 		for(Colony c:pheromones.keySet()){
-			pheromones.put(c, pheromones.get(c) * (1 - (Cell.PHERO_DECAY * dt/1000)));
+			pheromones.put(c, Math.min(25,Math.max(0, pheromones.get(c) - Cell.PHERO_DECAY * dt/1000)));
 		}
 		
 		return transitions;
@@ -88,11 +89,13 @@ public class Cell {
 				DisplayGUI.CELLWIDTH, DisplayGUI.CELLWIDTH);
 		
 		for(Colony c:pheromones.keySet()){
-			if (pheromones.get(c) > Ant.pherThresh) {
+			double cPher = pheromones.get(c);
+			if (cPher > Ant.pherThresh) {
 				g.setColor(c.color);
-				g.setStroke(new BasicStroke(pheromones.get(c).floatValue()/2));
-				g.drawRect(col*DisplayGUI.CELLWIDTH, row*DisplayGUI.CELLWIDTH,
-						DisplayGUI.CELLWIDTH, DisplayGUI.CELLWIDTH);
+				g.setStroke(new BasicStroke(2));//pheromones.get(c).floatValue()/2));
+				int offset = (int)((0.5-cPher/(PHERO_CAP*2))*DisplayGUI.CELLWIDTH);
+				g.drawRect(col*DisplayGUI.CELLWIDTH + offset, row*DisplayGUI.CELLWIDTH + offset,
+						(int)((cPher/PHERO_CAP)*DisplayGUI.CELLWIDTH), (int)((cPher/PHERO_CAP)*DisplayGUI.CELLWIDTH));
 			}
 		}
 	}

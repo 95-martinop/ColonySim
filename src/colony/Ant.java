@@ -31,14 +31,17 @@ public class Ant {
 	private final double MAX_VELOCITY;
 	
 	private enum State {
-		Follow, Wander, Home
+		Follow, Wander, Home, Attack
 	}
 	
 	private State state = State.Wander;
 	
 	private final double MAX_WANDER_DISTANCE = DisplayGUI.CELLWIDTH * 25;
+	private final double ENERGY_THRESH = 0.35;
 	private int wTimer;
 	private int wThresh = 500;
+	
+	private Ant attackTarget;
 	
 	public Ant(Colony colony) {
 		this.home = colony;
@@ -127,12 +130,9 @@ public class Ant {
 				}
 				break;
 				
-		}
-		
-		energy -= dt/60000;
-		
-		if (energy < 0.35) {
-			this.state = State.Home;
+			case Attack:
+				seek(attackTarget.pos);
+				break;
 		}
 		
 		ArrayList<Ant> neighbors = new ArrayList<Ant>(); 
@@ -142,8 +142,40 @@ public class Ant {
 		}
 		neighbors.addAll(currentCell.ants);
 		
+		boolean targetNear = false;
 		for(Ant a: neighbors){
-			avoid(leadPoint(a),100);
+			if (state != State.Attack && this.home != a.home && a.size < this.size) {
+				double roll = Math.random();
+				switch (state) {
+					case Wander:
+						if (roll < home.aggression) {
+							attackTarget = a;
+							state = State.Attack;
+							targetNear = true;
+						}
+						break;
+					case Follow:
+						if (roll < home.aggression * currentCell.pheromones.get(home) / 10) {
+							attackTarget = a;
+							state = State.Attack;
+							targetNear = true;
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			if (a != attackTarget) {
+				avoid(leadPoint(a),100);
+			}
+			else {
+				targetNear = true;
+			}
+		}
+		
+		if (state == State.Attack && !targetNear) {
+			attackTarget = null;
+			state = State.Wander;
 		}
 		
 		// clamp velocity to maximum
@@ -173,6 +205,11 @@ public class Ant {
 			pos.y = DisplayGUI.HEIGHT - size;
 			vel.y *= -1;
 		}
+		
+		energy -= dt/60000;
+		if (energy < ENERGY_THRESH) {
+			this.state = State.Home;
+		}
 
 		int prow = row;
 		int pcol = col;
@@ -197,6 +234,8 @@ public class Ant {
 		Point2D.Double dir = new Point2D.Double(pos.x + vec.x, pos.y + vec.y);
 		g.setStroke(new BasicStroke(2));
 		g.drawLine((int) pos.x, (int) pos.y, (int) dir.x, (int) dir.y);
+		g.setColor(Color.black);
+		g.drawOval((int) (pos.x - size), (int) (pos.y - size), (int) size * 2, (int) size * 2);
 		
 		// draw wander force
 		//dir = new Point2D.Double(pos.x + steer.x, pos.y + steer.y);
@@ -206,8 +245,9 @@ public class Ant {
 	public boolean collidingWith(Ant other) {
 		double bound = other.size + this.size;
 		double nx = other.pos.x - this.pos.x;
-		double ny = other.pos.y - this.pos.y;
+		double ny = other.pos.y - this.pos.y; 
 		double dist = Math.sqrt(Math.pow(nx, 2) + Math.pow(ny, 2));
+		
 		if (dist <= bound) {
 			// do something with collision...
 			nx /= dist;
@@ -216,6 +256,15 @@ public class Ant {
 			
 			collide(nx, ny, correctDist);
 			other.collide(-nx, -ny, correctDist);
+			
+			if (state == State.Attack && this.home != other.home && size > other.size) {
+				other.energy -= 0.08;
+				if (other.energy < 0) {
+					attackTarget = null;
+					state = State.Follow;
+				}
+			}
+			
 			return true;
 		}
 		return false;
@@ -273,7 +322,6 @@ public class Ant {
 		aim.y = vel.y-aim.y;
 		thrust(aim);
 	}
-	
 	
 	private void scale(Point2D.Double vector, double val) {
 		double len = vector.distance(new Point2D.Double(0, 0));

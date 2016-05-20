@@ -11,7 +11,7 @@ import java.awt.*;
 public class DisplayGUI extends JFrame{
 	
 	public static int WIDTH = 1000, HEIGHT = 800;
-	public static int CELLWIDTH = 20;
+	public static int CELLWIDTH = 100;
 	
 	private static final long serialVersionUID = 1L;
 	private Display view;
