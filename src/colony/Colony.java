@@ -14,12 +14,13 @@ public class Colony {
 	double spawnTimer;
 	
 	double aggression;
+	int numAnts = 0;
 	static final double SPAWN_THRESH = 25;
 	
 	public Colony(int r, int c, Grid grid){
 		this.row = r;
 		this.col = c;
-		this.food = 100;
+		this.food = 500;
 		this.aggression = Math.random();
 		this.color = new Color(Color.HSBtoRGB((float) aggression, 0.7f, 0.7f));
 		this.grid = grid;
@@ -39,6 +40,8 @@ public class Colony {
 		if(this.food>SPAWN_THRESH & this.spawnTimer >500){
 			this.food = this.food-10;
 			Ant newAnt = new Ant(this);
+			this.numAnts +=1;
+			this.grid.totalAnts +=1;
 			ArrayList<Ant> temp = new ArrayList<Ant>();
 			temp.add(newAnt);
 			this.grid.transitionAnts(temp);

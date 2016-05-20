@@ -45,9 +45,15 @@ public class Cell {
 		//growth = (float) (Math.random());
 		
 		growth = 0;
-		if (Math.random() < 0.02){//row == 10 && col == 10) {
+		//if (Math.random() < 0.05){//row == 10 && col == 10) {
+		//	growth = 0.5f;
+		//}
+		
+		if(row > 15 & row < 23 & col >20 & col < 28){
 			growth = 0.5f;
 		}
+		
+		
 		
 	}
 	
@@ -80,6 +86,9 @@ public class Cell {
 			}
 			
 			
+		}
+		for(int a = 0; a < ants.size(); a++){
+			ants.get(a).hasStepped = false;
 		}
 		
 		for(Colony c:pheromones.keySet()){

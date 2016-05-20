@@ -56,10 +56,10 @@ public class Display extends JPanel implements Runnable {
 			next = System.currentTimeMillis();
 			dt = (int) (next - now);
 			now = next;
-			step(dt);
+			step(20);//dt);
 			repaint(); // indirectly calls paintComponent
 			try {
-				Thread.sleep(50);
+				Thread.sleep(0);//50);
 			} catch (Exception e) {
 
 			}

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Ant {
 
 	double size;
-	double energy = 2;
+	double energy = 5;
 	Point2D.Double pos, vel, steer;
 
 	public boolean hasFood = false;
@@ -17,7 +17,7 @@ public class Ant {
 	int row, col;
 
 	Color color;
-	
+	public boolean hasStepped = false;
 	private double wanderAngle;
 	private double wanderCircleDistance;
 	private double wanderCircleRadius;
@@ -25,7 +25,7 @@ public class Ant {
 	private Point2D.Double homePoint;
 	private Colony home;
 	public static Double pherThresh=  .1;
-	private Double wanderChance=.001;
+	private Double wanderChance=.0005;
 	private Cell currentCell;
 	
 	private final double MAX_VELOCITY;
@@ -36,7 +36,7 @@ public class Ant {
 	
 	private State state = State.Wander;
 	
-	private final double MAX_WANDER_DISTANCE = DisplayGUI.CELLWIDTH * 25;
+	private final double MAX_WANDER_DISTANCE = DisplayGUI.CELLWIDTH * 50;// * 25;
 	private final double ENERGY_THRESH = 0.35;
 	private int wTimer;
 	private int wThresh = 500;
@@ -68,6 +68,9 @@ public class Ant {
 	}
 
 	public boolean step(double dt, float terrain, Cell currentCell) {
+		if(this.hasStepped){return false;}
+		
+		this.hasStepped =true;
 		tryTakeFood(currentCell);
 		tryLeaveFood(currentCell);
 		
@@ -126,7 +129,7 @@ public class Ant {
 						double p = currentCell.pheromones.get(home);
 						p += dt/300; 
 						currentCell.pheroTimer = 0.00;
-						currentCell.pheromones.put(home, p);						
+						currentCell.pheromones.put(home, p*1.25);						
 					}
 				}
 				break;
@@ -207,7 +210,7 @@ public class Ant {
 			vel.y *= -1;
 		}
 		
-		energy -= dt/60000;
+		energy -= dt/240000;//60000;
 		if (energy < ENERGY_THRESH) {
 			this.state = State.Home;
 		}
@@ -282,7 +285,7 @@ public class Ant {
 	}
 	
 	private void wander(double dt) {
-		Point2D.Double center = new Point2D.Double(vel.x * wanderCircleDistance, vel.y * wanderCircleDistance);
+		Point2D.Double center = new Point2D.Double(vel.x * wanderCircleDistance*2.5, vel.y * wanderCircleDistance*2.5);
 		Point2D.Double disp = new Point2D.Double(0, -1 * wanderCircleRadius);
 		disp = getDisplacement(disp, wanderAngle);
 		wanderAngle += Math.random() * wanderAngleChange - wanderAngleChange * 0.5;
@@ -343,7 +346,7 @@ public class Ant {
 	public void tryTakeFood(Cell cell){
 		if (cell.food > 0 && !hasFood) {
 			cell.food--;
-			cell.growth *= 0.8;
+			//cell.growth *= 0.8;
 			hasFood = true;
 			this.state = State.Home;
 		}

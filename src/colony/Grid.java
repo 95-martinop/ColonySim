@@ -10,7 +10,7 @@ public class Grid {
 	Colony[] colonies;
 	public Cell[][] cell;
 	public int colonyRate = 100;
-	
+	public int totalAnts = 0;
 	int rows, cols;
 	
 	public Grid(){
