@@ -10,8 +10,8 @@ import javax.swing.JPanel;
  * @author martinop Basic swing display window.
  */
 public class Display extends JPanel implements Runnable {
-	static final int SLEEP_TIME = 0;//50;
-	static final double MAX_RUN_TIME = 10;
+	static final int SLEEP_TIME = 50;//0;
+	static final double MAX_RUN_TIME = 240;
 	private double totalTimeElapsed= 0;
 	
 	/** ignore this, req'd for serialization */
@@ -65,7 +65,7 @@ public class Display extends JPanel implements Runnable {
 			dt = (int) (next - now);
 			this.totalTimeElapsed += dt/1000.0;
 			now = next;
-			step(20);//dt);//20); //set step(20) and set SLEEP_TIME to 0 for maximum simulaiton speed
+			step(dt);//20); //set step(20) and set SLEEP_TIME to 0 for maximum simulaiton speed
 			repaint(); // indirectly calls paintComponent
 			try {
 				Thread.sleep(SLEEP_TIME);
