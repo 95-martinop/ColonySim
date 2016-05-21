@@ -7,41 +7,40 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class Ant {
-
-	double size;
-	double energy = 5;
-	Point2D.Double pos, vel, steer;
-
-	public boolean hasFood = false;
+	static final int WANDER_TIME_TRESH = 500;
+	static final double WANDER_STRAIGHTNESS = 1.5;
+	static final double MAX_WANDER_DISTANCE = DisplayGUI.CELLWIDTH * 50;// * 25;
+	static final double WANDER_CHANCE =.001;
+	static final double PHER_THRESH=  .1;
+	static final double FOOD_DECAY_RATE = .9; //1 IS NO DECAY
+	static final double MAX_ENERGY = 5;
+	static final double ENERGY_THRESH = MAX_ENERGY/3;// ants don't wander in strait lines less than 
+	static final double ENERGY_LOSS_FACOTR = 240000;				//1/2 energy should be needed to return home
+	static final double BASE_DAMAGE = 0.08;
 	
 	int row, col;
-
+	double size;
 	Color color;
+	private Cell currentCell;
+	Colony home;
+	private Point2D.Double homePoint;
+	public boolean hasFood = false;
+	Point2D.Double pos, vel, steer;
+	private final double MAX_VELOCITY;
 	public boolean hasStepped = false;
 	private double wanderAngle;
 	private double wanderCircleDistance;
 	private double wanderCircleRadius;
 	private double wanderAngleChange;
-	private Point2D.Double homePoint;
-	private Colony home;
-	public static Double pherThresh=  .1;
-	private Double wanderChance=.0005;
-	private Cell currentCell;
-	
-	private final double MAX_VELOCITY;
+	private int wTimer;
+	double energy = MAX_ENERGY;
+	private Ant attackTarget;
+	public int totalFoodCollected = 0;
 	
 	private enum State {
 		Follow, Wander, Home, Attack
 	}
-	
 	private State state = State.Wander;
-	
-	private final double MAX_WANDER_DISTANCE = DisplayGUI.CELLWIDTH * 50;// * 25;
-	private final double ENERGY_THRESH = 0.35;
-	private int wTimer;
-	private int wThresh = 500;
-	
-	private Ant attackTarget;
 	
 	public Ant(Colony colony) {
 		this.home = colony;
@@ -52,19 +51,20 @@ public class Ant {
 		wanderCircleRadius = size * 2;
 		wanderAngleChange = Math.PI/2;
 
-		//pos = new Point2D.Double(Math.random() * DisplayGUI.WIDTH, Math.random() * DisplayGUI.HEIGHT);
+		
 		double theta = Math.random() * 2 * Math.PI;
 		vel = new Point2D.Double(10 * size * Math.sin(theta), 10 * size * Math.cos(theta));
 
 		color = this.home.color;//new Color(Color.HSBtoRGB((float) Math.random(), 0.7f, 0.7f));
 		this.homePoint = new Point2D.Double((this.home.col+.5) * DisplayGUI.CELLWIDTH, (this.home.row+.5) * DisplayGUI.CELLWIDTH);
-		pos = new Point2D.Double(homePoint.x, homePoint.y);
+		pos = new Point2D.Double(homePoint.x, homePoint.y);//pos = new Point2D.Double(Math.random() * DisplayGUI.WIDTH, Math.random() * DisplayGUI.HEIGHT);
 		
 		col = (int) (pos.x / DisplayGUI.CELLWIDTH);
 		row = (int) (pos.y / DisplayGUI.CELLWIDTH);
 		
 		MAX_VELOCITY = 8 * size;
 		wTimer = 0;
+		
 	}
 
 	public boolean step(double dt, float terrain, Cell currentCell) {
@@ -84,7 +84,7 @@ public class Ant {
 		
 		switch (state) {
 			case Follow:
-				if (Math.random() < wanderChance) {
+				if (Math.random() < WANDER_CHANCE) {
 					this.state = State.Wander;
 					break;
 				}
@@ -97,7 +97,7 @@ public class Ant {
 					int dr = c.row - home.row;
 					int dc = c.col - home.col;
 					double dist =Math.pow(dr, 2)+Math.pow(dc, 2);
-					if(dist > bestDist & c.pheromones.get(home)> pherThresh){
+					if(dist > bestDist & c.pheromones.get(home)> PHER_THRESH){
 						bestCell = c;
 						bestDist = dist;
 					}
@@ -112,7 +112,7 @@ public class Ant {
 				break;
 			case Wander:
 				wTimer += 1;
-				if(wTimer>wThresh && currentCell.pheromones.get(home)>pherThresh){
+				if(wTimer>WANDER_TIME_TRESH && currentCell.pheromones.get(home)>PHER_THRESH){
 					this.state = State.Follow;
 					wTimer =0;
 				}
@@ -210,7 +210,7 @@ public class Ant {
 			vel.y *= -1;
 		}
 		
-		energy -= dt/240000;//60000;
+		energy -= dt/ENERGY_LOSS_FACOTR;
 		if (energy < ENERGY_THRESH) {
 			this.state = State.Home;
 		}
@@ -261,11 +261,13 @@ public class Ant {
 			collide(nx, ny, correctDist);
 			other.collide(-nx, -ny, correctDist);
 			
-			if (state == State.Attack && this.home != other.home && size > other.size) {
-				other.energy -= 0.08;
+			if (state == State.Attack && this.home != other.home && size >= other.size) {
+				other.energy -= BASE_DAMAGE;
 				if (other.energy < 0) {
 					attackTarget = null;
 					state = State.Follow;
+					this.home.killCount += 1;
+					
 				}
 			}
 			
@@ -285,7 +287,7 @@ public class Ant {
 	}
 	
 	private void wander(double dt) {
-		Point2D.Double center = new Point2D.Double(vel.x * wanderCircleDistance*2.5, vel.y * wanderCircleDistance*2.5);
+		Point2D.Double center = new Point2D.Double(vel.x * wanderCircleDistance*WANDER_STRAIGHTNESS, vel.y * wanderCircleDistance*WANDER_STRAIGHTNESS);
 		Point2D.Double disp = new Point2D.Double(0, -1 * wanderCircleRadius);
 		disp = getDisplacement(disp, wanderAngle);
 		wanderAngle += Math.random() * wanderAngleChange - wanderAngleChange * 0.5;
@@ -346,7 +348,7 @@ public class Ant {
 	public void tryTakeFood(Cell cell){
 		if (cell.food > 0 && !hasFood) {
 			cell.food--;
-			//cell.growth *= 0.8;
+			cell.growth *= FOOD_DECAY_RATE;
 			hasFood = true;
 			this.state = State.Home;
 		}
@@ -355,12 +357,14 @@ public class Ant {
 		if (state == State.Home && cell.row == home.row && cell.col == home.col) {
 			if (hasFood) {
 				home.food++;
+				home.totalFoodHarvested ++;
 				hasFood = false;
-				this.energy = 2;
+				this.energy = MAX_ENERGY;
+				this.totalFoodCollected += 1;
 			}
 			else if (home.food > 0) {
 				home.food--;
-				this.energy = 1;
+				this.energy = MAX_ENERGY;
 			}
 			this.state = State.Follow;
 		}

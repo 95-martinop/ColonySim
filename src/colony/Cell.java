@@ -7,60 +7,45 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Cell {
+		//private static final double PHERO_DECAY = 0.05;
+	private static final double PHERO_CAP = 40;
+	//public double PHERO_RESET_TIME = 30;
+	private static final int MAX_FOOD = 20;
+	private static final double GROWTH_RATE = .05;
 	
 	// N, S, W, E, NW, NE, SW, SE
 	Cell[] neighbors = new Cell[8];
-	
 	int row, col;
 	ArrayList<Ant> ants;
-	
 	float terrain;
 	float growth;
 	int food;
 	HashMap<Colony,Double> pheromones;
-	
 	boolean hasColony = false;
 	Colony colony = null;
-	
-	private static final double PHERO_DECAY = 0.05;
-	private static final double PHERO_CAP = 40;
-	public double PHERO_RESET_TIME = 30;
 	public double pheroTimer = 0;
-	
-	private static final int MAX_FOOD = 20;
-	
 	
 	public Cell(int row, int col, Grid gr){
 		this.row = row;
 		this.col = col;
 		ants = new ArrayList<Ant>();
 		neighbors = new Cell[8];
-		
-		
-		
 		terrain = (float) (Math.random() * 0.1);
 		pheromones = new HashMap<Colony,Double>();
 		food = 0;
-
-		//growth = (float) (Math.random());
 		
 		growth = 0;
-		//if (Math.random() < 0.05){//row == 10 && col == 10) {
-		//	growth = 0.5f;
-		//}
-		
-		if(row > 15 & row < 23 & col >20 & col < 28){
+		if (Math.random() < GROWTH_RATE){
 			growth = 0.5f;
 		}
 		
-		
-		
+		//if(row > 15 & row < 23 & col >20 & col < 28){
+		//	growth = 0.5f;
+		//}	
 	}
 	
 	public ArrayList<Ant> step(double dt) {
-		this.pheroTimer += dt/100000;
-		
-		//System.out.println("CELL STEP");
+		this.pheroTimer += dt/100000;;
 		if(Math.random() < this.growth*dt/1000){
 			this.food++;
 			if (this.food > MAX_FOOD) {
@@ -79,13 +64,13 @@ public class Cell {
 				this.food += ant.size;
 				ants.remove(a);
 				a--;
+				ant.home.numAnts -= 1;
+				ant.home.grid.currentTotalAnts -= 1;
 			}
 			else if (transition) {
 				transitions.add(ants.remove(a));
 				a--;
-			}
-			
-			
+			}			
 		}
 		for(int a = 0; a < ants.size(); a++){
 			ants.get(a).hasStepped = false;
@@ -94,7 +79,6 @@ public class Cell {
 		for(Colony c:pheromones.keySet()){
 			pheromones.put(c, Math.min(25,Math.max(0, pheromones.get(c) - this.pheroTimer * dt/1000)));
 		}
-		
 		return transitions;
 	}
 	
@@ -105,7 +89,7 @@ public class Cell {
 		
 		for(Colony c:pheromones.keySet()){
 			double cPher = pheromones.get(c);
-			if (cPher > Ant.pherThresh) {
+			if (cPher > Ant.PHER_THRESH) {
 				g.setColor(c.color);
 				g.setStroke(new BasicStroke(2));//pheromones.get(c).floatValue()/2));
 				int offset = (int)((0.5-cPher/(PHERO_CAP*2))*DisplayGUI.CELLWIDTH);

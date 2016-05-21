@@ -10,25 +10,30 @@ public class Grid {
 	Colony[] colonies;
 	public Cell[][] cell;
 	public int colonyRate = 100;
-	public int totalAnts = 0;
-	int rows, cols;
+	public int totalAntsGenerated = 0;
+	public int currentTotalAnts = 0;
+	public int rows, cols;
 	
-	public Grid(){
+	public Grid(){//double[] aggressionValues){
 		rows = DisplayGUI.HEIGHT / DisplayGUI.CELLWIDTH;
 		cols = DisplayGUI.WIDTH / DisplayGUI.CELLWIDTH;
 		
+		//4
 		colonies = new Colony[COLONIES];
-		colonies[0] = new Colony(3, 3, this);
-		colonies[1] = new Colony(rows - 4, 3, this);
-		colonies[2] = new Colony(3, cols - 4, this);
-		colonies[3] = new Colony(rows - 3, cols - 3, this);
-		initCells();
+		colonies[0] = new Colony(5, 5, this);//,aggressionValues[0]);
+		colonies[1] = new Colony(rows - 5,5, this);//,aggressionValues[1]);
+		colonies[2] = new Colony(5,cols - 5,this);//,aggressionValues[2]);
+		colonies[3] = new Colony(rows - 5, cols - 5, this);//,aggressionValues[3]);
+		//8
+		//colonies[0] = new Colony(5,(int)Math.floor(cols/2), this);
+		//colonies[1] = new Colony(rows - 5,(int)Math.floor(cols/2), this);
+		//colonies[2] = new Colony((int)Math.floor(rows/2),5, this);
+		//colonies[3] = new Colony((int)Math.floor(rows/2),cols - 5, this);	
+		//9
+		//colonies[0] = new Colony((int)Math.floor(rows/2), (int)Math.floor(cols/2), this);
 		
-		//ArrayList<Ant> ants = new ArrayList<Ant>();
-		//for (int i = 0; i < 200; i++) {
-		//	ants.add(new Ant());
-		//}
-		//transitionAnts(ants);
+		initCells();
+
 	}
 	
 	private void initCells() {
